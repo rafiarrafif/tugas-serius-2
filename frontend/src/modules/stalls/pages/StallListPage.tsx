@@ -4,14 +4,15 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
+  Plus,
   Search,
   Star,
   Store,
 } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,7 +27,7 @@ import type { Stall, StallListMeta } from "../types/stall.types";
 
 const DEFAULT_LIMIT = 10;
 
-export function StallListPage() {
+export function StallListPage({ canCreateStall }: { canCreateStall: boolean }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [stalls, setStalls] = useState<Stall[]>([]);
@@ -144,7 +145,7 @@ export function StallListPage() {
     <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <header className="mb-6 flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
                 Browse stalls
@@ -153,8 +154,16 @@ export function StallListPage() {
                 Available stalls
               </h1>
             </div>
-            <div className="rounded-full border border-border bg-muted/30 px-3 py-1 text-sm text-muted-foreground">
-              {meta.total} total results
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="rounded-full border border-border bg-muted/30 px-3 py-1 text-sm text-muted-foreground">
+                {meta.total} total results
+              </div>
+              {canCreateStall && (
+                <Link to="/create/stall" className={buttonVariants()}>
+                  <Plus data-icon="inline-start" />
+                  Add Stall
+                </Link>
+              )}
             </div>
           </div>
 

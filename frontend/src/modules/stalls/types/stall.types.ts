@@ -56,3 +56,21 @@ export type StallFilterParams = {
   page?: number;
   limit?: number;
 };
+
+export type CreateStallInput = {
+  name: string;
+  category: string;
+  location: string;
+  description: string;
+};
+
+export type VerifiedUserPayload = {
+  userId: number;
+  role?: string;
+};
+
+export type CreateStallActionResult = {
+  message?: string;
+  forbidden?: boolean;
+  fieldErrors?: Partial<Record<keyof CreateStallInput, string>>;
+};

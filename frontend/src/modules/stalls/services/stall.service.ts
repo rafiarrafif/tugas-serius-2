@@ -1,10 +1,43 @@
 import api from "../../../shared/lib/axios";
+import { requestBackend } from "../../../shared/lib/api-handler";
 import type {
+  CreateStallInput,
   MenuItemsApiResponse,
   StallDetailApiResponse,
   StallFilterParams,
   StallListApiResponse,
+  VerifiedUserPayload,
 } from "../types/stall.types";
+
+export async function getVerifiedUserRole(
+  token: string,
+): Promise<string | undefined> {
+  const user = await requestBackend<VerifiedUserPayload>(
+    {
+      method: "GET",
+      url: "/auth/me",
+      headers: { auth_token: token },
+    },
+    "Unable to verify your account.",
+  );
+
+  return user.role;
+}
+
+export async function createStall(
+  payload: CreateStallInput,
+  token: string,
+): Promise<unknown> {
+  return requestBackend<unknown>(
+    {
+      method: "POST",
+      url: "/stalls/",
+      data: payload,
+      headers: { auth_token: token },
+    },
+    "Unable to create the stall.",
+  );
+}
 
 export async function getStalls(params: StallFilterParams = {}) {
   const queryParams = {

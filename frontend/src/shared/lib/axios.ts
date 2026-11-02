@@ -13,26 +13,4 @@ export const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
-  const existingHeaders =
-    config.headers && typeof (config.headers as any).toJSON === "function"
-      ? (config.headers as any).toJSON()
-      : (config.headers ?? {});
-
-  const outgoingHeaders = { ...existingHeaders };
-  const headerAuthToken =
-    typeof outgoingHeaders.auth_token === "string"
-      ? outgoingHeaders.auth_token
-      : undefined;
-
-  delete outgoingHeaders.auth_token;
-
-  config.headers = {
-    ...outgoingHeaders,
-    ...(headerAuthToken ? { Authorization: `Bearer ${headerAuthToken}` } : {}),
-  };
-
-  return config;
-});
-
 export default api;
