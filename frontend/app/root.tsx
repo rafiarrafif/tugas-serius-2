@@ -5,11 +5,20 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "react-router";
 
+import { getAuthToken } from "./lib/auth-session.server";
 import type { Route } from "./+types/root";
+import { SiteHeader } from "~/components/site-header";
 import { Toaster } from "~/components/ui/toast";
 import "./app.css";
+
+export async function loader({ request }: Route.LoaderArgs) {
+  return {
+    isAuthenticated: Boolean(getAuthToken(request)),
+  };
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,7 +39,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  const { isAuthenticated } = useLoaderData<typeof loader>();
+
+  return (
+    <>
+      <SiteHeader isAuthenticated={isAuthenticated} />
+      <Outlet />
+    </>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

@@ -9,10 +9,10 @@ import type {
   VerifiedUserPayload,
 } from "../types/stall.types";
 
-export async function getVerifiedUserRole(
+export async function getCurrentUser(
   token: string,
-): Promise<string | undefined> {
-  const user = await requestBackend<VerifiedUserPayload>(
+): Promise<VerifiedUserPayload> {
+  return requestBackend<VerifiedUserPayload>(
     {
       method: "GET",
       url: "/auth/me",
@@ -20,7 +20,12 @@ export async function getVerifiedUserRole(
     },
     "Unable to verify your account.",
   );
+}
 
+export async function getVerifiedUserRole(
+  token: string,
+): Promise<string | undefined> {
+  const user = await getCurrentUser(token);
   return user.role;
 }
 
@@ -36,6 +41,22 @@ export async function createStall(
       headers: { auth_token: token },
     },
     "Unable to create the stall.",
+  );
+}
+
+export async function updateStall(
+  stallId: number,
+  payload: CreateStallInput,
+  token: string,
+): Promise<unknown> {
+  return requestBackend<unknown>(
+    {
+      method: "PUT",
+      url: `/stalls/${stallId}`,
+      data: payload,
+      headers: { auth_token: token },
+    },
+    "Unable to update the stall.",
   );
 }
 

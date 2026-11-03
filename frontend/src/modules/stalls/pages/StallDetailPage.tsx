@@ -4,17 +4,23 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
+  Pencil,
   Star,
   Store,
 } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Spinner } from "~/components/ui/spinner";
 import { getMenuItemsForStall, getStallById } from "../services/stall.service";
-import type { MenuItem, Stall, StallListMeta } from "../types/stall.types";
+import type {
+  MenuItem,
+  Stall,
+  StallListMeta,
+  VerifiedUserPayload,
+} from "../types/stall.types";
 
 const DEFAULT_MENU_LIMIT = 10;
 
@@ -24,7 +30,11 @@ const currencyFormatter = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 0,
 });
 
-export function StallDetailPage() {
+export function StallDetailPage({
+  currentUser,
+}: {
+  currentUser: VerifiedUserPayload | null;
+}) {
   const { stall_id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const stallId = Number(stall_id);
@@ -116,6 +126,22 @@ export function StallDetailPage() {
     [meta.limit, meta.total],
   );
 
+  const canEdit = useMemo(() => {
+    if (!stall || !currentUser) {
+      return false;
+    }
+
+    if (currentUser.role === "admin") {
+      return true;
+    }
+
+    if (currentUser.role !== "owner") {
+      return false;
+    }
+
+    return currentUser.userId === stall.ownerId;
+  }, [currentUser, stall]);
+
   function changePage(nextPage: number) {
     const next = new URLSearchParams(searchParams);
     next.set("page", String(Math.max(1, nextPage)));
@@ -172,13 +198,26 @@ export function StallDetailPage() {
   return (
     <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <Link to="/stall">
             <Button variant="outline" className="gap-2">
               <ArrowLeft className="size-4" />
               Back to stalls
             </Button>
           </Link>
+
+          {canEdit && (
+            <Link
+              to={`/stall/${stall.id}/edit`}
+              className={buttonVariants({
+                variant: "outline",
+                className: "gap-2",
+              })}
+            >
+              <Pencil className="size-4" />
+              Edit
+            </Link>
+          )}
         </div>
 
         <Card className="border-border/80 bg-card shadow-sm">

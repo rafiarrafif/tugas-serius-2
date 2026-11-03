@@ -22,3 +22,8 @@ export function commitAuthToken(token: string): string {
   const secureAttribute = import.meta.env.PROD ? "; Secure" : "";
   return `${authCookieName}=${token}; Path=/; Max-Age=${authCookieMaxAge}; HttpOnly; SameSite=Lax${secureAttribute}`;
 }
+
+export function clearAuthToken(): string {
+  const secureAttribute = import.meta.env.PROD ? "; Secure" : "";
+  return `${authCookieName}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${secureAttribute}`;
+}
