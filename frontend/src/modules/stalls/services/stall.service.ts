@@ -3,6 +3,7 @@ import { requestBackend } from "../../../shared/lib/api-handler";
 import type {
   CreateStallInput,
   MenuItemsApiResponse,
+  Stall,
   StallDetailApiResponse,
   StallFilterParams,
   StallListApiResponse,
@@ -57,6 +58,20 @@ export async function updateStall(
       headers: { auth_token: token },
     },
     "Unable to update the stall.",
+  );
+}
+
+export async function deleteStall(
+  stallId: number,
+  token: string,
+): Promise<Stall> {
+  return requestBackend<Stall>(
+    {
+      method: "DELETE",
+      url: `/stalls/${stallId}`,
+      headers: { auth_token: token },
+    },
+    "Unable to delete the stall.",
   );
 }
 

@@ -61,13 +61,14 @@ stallRouter.put(
 stallRouter.delete(
   "/:id",
   authMiddleware,
-  requireRoles("admin"),
+  requireRoles("admin", "owner"),
+  requireStallOwnerOrAdmin,
   (req, res) => {
     // #swagger.parameters['id'] = { in: 'path', required: true, type: 'integer', description: 'Stall ID (must be > 0)' }
     // #swagger.responses[200] = { description: 'Stall deleted' }
     // #swagger.responses[400] = { description: 'Invalid ID (must be a positive integer)' }
     // #swagger.responses[401] = { description: 'Token tidak ditemukan atau tidak valid' }
-    // #swagger.responses[403] = { description: 'User tidak memiliki izin untuk melakukan aksi ini' }
+    // #swagger.responses[403] = { description: 'Only an admin or the stall owner may delete this stall' }
     // #swagger.responses[404] = { description: 'Stall not found' }
     return stallController.deleteStall(req, res);
   },

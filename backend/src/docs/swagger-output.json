@@ -197,7 +197,7 @@
             "description": "Token tidak ditemukan atau tidak valid"
           },
           "403": {
-            "description": "User tidak memiliki izin untuk melakukan aksi ini"
+            "description": "Only an admin or the stall owner may delete this stall"
           },
           "404": {
             "description": "Stall not found"

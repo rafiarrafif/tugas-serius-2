@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -7,13 +8,26 @@ import {
   Pencil,
   Star,
   Store,
+  Trash2,
 } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Spinner } from "~/components/ui/spinner";
+import { BackendRequestError } from "../../../shared/lib/api-handler";
 import { getMenuItemsForStall, getStallById } from "../services/stall.service";
 import type {
   MenuItem,
@@ -32,8 +46,14 @@ const currencyFormatter = new Intl.NumberFormat("id-ID", {
 
 export function StallDetailPage({
   currentUser,
+  isDeleting,
+  deleteError,
+  onDelete,
 }: {
   currentUser: VerifiedUserPayload | null;
+  isDeleting: boolean;
+  deleteError: string | null;
+  onDelete: () => void;
 }) {
   const { stall_id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,6 +69,7 @@ export function StallDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [menuError, setMenuError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
   const limit = Math.min(
@@ -81,6 +102,18 @@ export function StallDetailPage({
         setStall(stallResponse.data);
       } catch (loadError) {
         if (!active) return;
+
+        if (
+          (loadError instanceof BackendRequestError &&
+            loadError.responseStatus === 404) ||
+          (axios.isAxiosError(loadError) && loadError.response?.status === 404)
+        ) {
+          setStall(null);
+          setError("This stall doesn't exist.");
+          setLoading(false);
+          return;
+        }
+
         setError(
           loadError instanceof Error
             ? loadError.message
@@ -172,14 +205,22 @@ export function StallDetailPage({
   }
 
   if (error || !stall) {
+    const isMissingStall = error === "This stall doesn't exist.";
+
     return (
       <main className="min-h-screen bg-background px-4 py-10">
         <div className="mx-auto max-w-3xl">
           <Alert variant="destructive">
             <Store className="size-4" />
-            <AlertTitle>Unable to load stall</AlertTitle>
+            <AlertTitle>
+              {isMissingStall
+                ? "This stall doesn't exist."
+                : "Unable to load stall"}
+            </AlertTitle>
             <AlertDescription>
-              {error ?? "The requested stall could not be found."}
+              {isMissingStall
+                ? "The stall you are looking for could not be found."
+                : (error ?? "The requested stall could not be found.")}
             </AlertDescription>
           </Alert>
           <div className="mt-4">
@@ -207,18 +248,70 @@ export function StallDetailPage({
           </Link>
 
           {canEdit && (
-            <Link
-              to={`/stall/${stall.id}/edit`}
-              className={buttonVariants({
-                variant: "outline",
-                className: "gap-2",
-              })}
-            >
-              <Pencil className="size-4" />
-              Edit
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                to={`/stall/${stall.id}/edit`}
+                className={buttonVariants({
+                  variant: "outline",
+                  className: "gap-2",
+                })}
+              >
+                <Pencil data-icon="inline-start" />
+                Edit
+              </Link>
+
+              <AlertDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+              >
+                <AlertDialogTrigger
+                  render={
+                    <Button variant="destructive" disabled={isDeleting} />
+                  }
+                >
+                  {isDeleting ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
+                    <Trash2 data-icon="inline-start" />
+                  )}
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete {stall.name}?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this stall. This action
+                      cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      variant="destructive"
+                      disabled={isDeleting}
+                      onClick={() => {
+                        setDeleteDialogOpen(false);
+                        onDelete();
+                      }}
+                    >
+                      Yes, delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </div>
+
+        {deleteError && (
+          <Alert variant="destructive">
+            <Store className="size-4" />
+            <AlertTitle>Unable to delete stall</AlertTitle>
+            <AlertDescription>{deleteError}</AlertDescription>
+          </Alert>
+        )}
 
         <Card className="border-border/80 bg-card shadow-sm">
           <CardHeader className="gap-4 pb-4">
