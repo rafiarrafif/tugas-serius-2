@@ -142,20 +142,24 @@ export function StallListPage({ canCreateStall }: { canCreateStall: boolean }) {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
+    <main className="app-page min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-6 flex flex-col gap-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
+        <header className="food-surface relative mb-6 flex flex-col gap-4 overflow-hidden rounded-[1.5rem] border p-5 shadow-sm sm:p-7">
+          <div
+            aria-hidden="true"
+            className="absolute inset-y-0 left-0 w-1.5 bg-primary"
+          />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">
                 Browse stalls
               </p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 Available stalls
               </h1>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="rounded-full border border-border bg-muted/30 px-3 py-1 text-sm text-muted-foreground">
+              <div className="rounded-full border border-secondary bg-secondary/60 px-3 py-1.5 text-sm font-medium text-secondary-foreground">
                 {meta.total} total results
               </div>
               {canCreateStall && (
@@ -223,14 +227,14 @@ export function StallListPage({ canCreateStall }: { canCreateStall: boolean }) {
         )}
 
         {loading ? (
-          <div className="flex min-h-64 items-center justify-center rounded-2xl border border-dashed border-border bg-card/50">
+          <div className="food-surface flex min-h-64 items-center justify-center rounded-[1.5rem] border border-dashed">
             <div className="flex items-center gap-3 text-muted-foreground">
               <Spinner />
               <span>Loading stalls...</span>
             </div>
           </div>
         ) : stalls.length === 0 ? (
-          <Card className="border-dashed border-border/80 bg-card/60">
+          <Card className="food-surface border-dashed">
             <CardContent className="flex min-h-48 items-center justify-center p-8 text-center text-muted-foreground">
               No stalls match your current filters.
             </CardContent>
@@ -250,12 +254,12 @@ export function StallListPage({ canCreateStall }: { canCreateStall: boolean }) {
                       navigate(`/stall/${stall.id}`);
                     }
                   }}
-                  className="group cursor-pointer border-border/80 bg-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-md"
+                  className="food-surface group cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
                 >
                   <CardHeader className="gap-3 pb-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <div className="flex size-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground transition group-hover:bg-primary group-hover:text-primary-foreground">
                           <Store className="size-4" />
                         </div>
                         <div>
@@ -286,7 +290,7 @@ export function StallListPage({ canCreateStall }: { canCreateStall: boolean }) {
                       {stall.description || "No description provided."}
                     </p>
 
-                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/25 px-3 py-2">
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-background/75 px-3 py-2.5">
                       <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                         <Star className="size-4 fill-amber-400 text-amber-400" />
                         {Number(stall.avgRating).toFixed(1)}

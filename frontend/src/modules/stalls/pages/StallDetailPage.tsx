@@ -193,8 +193,8 @@ export function StallDetailPage({
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-background px-4 py-10">
-        <div className="mx-auto max-w-5xl rounded-2xl border border-dashed border-border bg-card p-10 text-center text-muted-foreground">
+      <main className="app-page min-h-screen px-4 py-10">
+        <div className="food-surface mx-auto max-w-5xl rounded-[1.5rem] border border-dashed p-10 text-center text-muted-foreground">
           <div className="flex items-center justify-center gap-3">
             <Spinner />
             <span>Loading stall details...</span>
@@ -208,7 +208,7 @@ export function StallDetailPage({
     const isMissingStall = error === "This stall doesn't exist.";
 
     return (
-      <main className="min-h-screen bg-background px-4 py-10">
+      <main className="app-page min-h-screen px-4 py-10">
         <div className="mx-auto max-w-3xl">
           <Alert variant="destructive">
             <Store className="size-4" />
@@ -237,7 +237,7 @@ export function StallDetailPage({
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
+    <main className="app-page min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex items-center justify-between gap-3">
           <Link to="/stall">
@@ -313,11 +313,11 @@ export function StallDetailPage({
           </Alert>
         )}
 
-        <Card className="border-border/80 bg-card shadow-sm">
-          <CardHeader className="gap-4 pb-4">
+        <Card className="food-surface overflow-hidden shadow-sm">
+          <CardHeader className="gap-4 border-b border-border/70 bg-secondary/35 pb-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="flex items-start gap-3">
-                <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm shadow-primary/20">
                   <Store className="size-5" />
                 </div>
                 <div>
@@ -331,7 +331,7 @@ export function StallDetailPage({
               </div>
 
               {stall.isPopular && (
-                <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-amber-600">
+                <span className="inline-flex items-center rounded-full bg-accent px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-accent-foreground">
                   Popular
                 </span>
               )}
@@ -349,19 +349,19 @@ export function StallDetailPage({
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2 rounded-full border border-border bg-muted/30 px-3 py-1.5 text-sm font-medium text-foreground">
+              <div className="flex items-center gap-2 rounded-full border border-accent/70 bg-accent/55 px-3 py-1.5 text-sm font-medium text-accent-foreground">
                 <Star className="size-4 fill-amber-400 text-amber-400" />
                 {Number(stall.avgRating).toFixed(1)} average rating
               </div>
 
-              <div className="rounded-full border border-border bg-muted/30 px-3 py-1.5 text-sm text-muted-foreground">
+              <div className="rounded-full border border-secondary bg-secondary/60 px-3 py-1.5 text-sm text-secondary-foreground">
                 {stall.reviewCount} reviews
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm">
+        <section className="food-surface rounded-[1.5rem] border p-5 shadow-sm sm:p-6">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -397,7 +397,7 @@ export function StallDetailPage({
           )}
 
           {menuItems.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border bg-muted/20 p-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-xl border border-dashed border-secondary bg-secondary/35 p-8 text-center text-sm text-muted-foreground">
               No menu items are currently available for this stall.
             </div>
           ) : (
@@ -406,7 +406,7 @@ export function StallDetailPage({
                 {menuItems.map((item) => (
                   <Card
                     key={item.id}
-                    className="border-border/80 bg-background/60"
+                    className="border-border/70 bg-background/80 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <CardContent className="space-y-3 p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -421,8 +421,8 @@ export function StallDetailPage({
                         <span
                           className={`rounded-full px-2 py-1 text-[10px] font-medium uppercase tracking-[0.12em] ${
                             item.isAvailable
-                              ? "bg-emerald-500/10 text-emerald-600"
-                              : "bg-red-500/10 text-red-600"
+                              ? "bg-secondary text-secondary-foreground"
+                              : "bg-destructive/10 text-destructive"
                           }`}
                         >
                           {item.isAvailable ? "Available" : "Unavailable"}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, Link } from "react-router";
 import { cn } from "cn";
+import { Utensils } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
 
@@ -30,13 +31,16 @@ export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 shadow-[0_4px_18px_-16px_var(--foreground)] backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to="/"
-          className="text-lg font-semibold tracking-tight text-foreground transition hover:text-foreground/80"
+          className="group flex items-center gap-2.5 text-lg font-semibold tracking-tight text-foreground transition hover:text-primary"
         >
-          UNS Food Court
+          <span className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shadow-primary/20 transition group-hover:-rotate-3">
+            <Utensils aria-hidden="true" className="size-4" />
+          </span>
+          <span>UNS Food Court</span>
         </Link>
 
         {isAuthenticated ? (
@@ -45,7 +49,7 @@ export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
               type="button"
               aria-label="Open user menu"
               onClick={() => setMenuOpen((current) => !current)}
-              className="flex items-center rounded-full border border-border bg-background p-0.5 shadow-sm transition hover:border-foreground/20"
+              className="flex items-center rounded-full border border-border bg-card p-0.5 shadow-sm transition hover:border-primary/40 hover:shadow-md"
             >
               <img
                 src={profileImageUrl}
@@ -55,7 +59,7 @@ export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-40 rounded-xl border border-border bg-popover p-1 shadow-lg">
+              <div className="absolute right-0 top-full mt-2 w-40 rounded-xl border border-border bg-popover p-1 shadow-xl shadow-foreground/10">
                 <Form method="post" action="/logout">
                   <button
                     type="submit"

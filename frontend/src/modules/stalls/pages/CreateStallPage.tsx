@@ -42,8 +42,8 @@ export function CreateStallPage({ authorized }: { authorized: boolean }) {
 
   if (forbidden) {
     return (
-      <main className="min-h-screen bg-background px-4 py-10 sm:px-6">
-        <Card className="mx-auto w-full max-w-lg">
+      <main className="app-page min-h-screen px-4 py-10 sm:px-6">
+        <Card className="food-surface mx-auto w-full max-w-lg">
           <CardHeader>
             <CardTitle>403 Forbidden</CardTitle>
             <CardDescription>
@@ -65,7 +65,7 @@ export function CreateStallPage({ authorized }: { authorized: boolean }) {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
+    <main className="app-page min-h-screen px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-2xl">
         <Link
           to="/stall"
@@ -75,9 +75,9 @@ export function CreateStallPage({ authorized }: { authorized: boolean }) {
           Back to stalls
         </Link>
 
-        <Card>
-          <CardHeader>
-            <div className="flex size-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Card className="food-surface overflow-hidden">
+          <CardHeader className="border-b border-border/70 bg-secondary/35 sm:p-7">
+            <div className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shadow-primary/20">
               <Store aria-hidden="true" className="size-5" />
             </div>
             <CardTitle className="text-2xl">Add a stall</CardTitle>

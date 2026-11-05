@@ -126,14 +126,10 @@ export function RegisterPage() {
   }
 
   return (
-    <main className="relative flex min-h-svh items-center justify-center overflow-hidden bg-gradient-to-br from-sky-50 via-background to-emerald-50 px-4 py-10 sm:px-6">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-primary"
-      />
-      <Card className="relative w-full max-w-md border-border/80 bg-card/95 shadow-xl shadow-foreground/5 backdrop-blur-sm">
-        <CardHeader className="gap-4 px-6 pt-7 sm:px-8 sm:pt-8">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+    <main className="app-page flex min-h-svh items-center justify-center overflow-hidden px-4 py-10 sm:px-6">
+      <Card className="food-surface relative w-full max-w-md overflow-hidden rounded-[1.5rem] shadow-xl shadow-foreground/5">
+        <CardHeader className="gap-4 border-b border-border/70 bg-secondary/35 px-6 pt-7 pb-6 sm:px-8 sm:pt-8">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/20">
             <UserRoundPlus aria-hidden="true" className="size-5" />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -245,7 +241,7 @@ export function RegisterPage() {
           </fetcher.Form>
         </CardContent>
 
-        <CardFooter className="justify-center border-t border-border/70 px-6 py-4 text-center text-xs text-muted-foreground sm:px-8">
+        <CardFooter className="justify-center border-t border-border/70 bg-accent/25 px-6 py-4 text-center text-xs text-muted-foreground sm:px-8">
           Your account type is set to Customer.
         </CardFooter>
       </Card>
