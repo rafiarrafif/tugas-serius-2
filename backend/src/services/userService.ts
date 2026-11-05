@@ -31,6 +31,30 @@ export class UserService {
     return { data: rows.map((row) => this.toDto(row)), total };
   }
 
+  async getCurrentUser(token: string) {
+    const payload = this.verifyToken(token);
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      !Number.isInteger(payload.userId) ||
+      payload.userId <= 0
+    ) {
+      throw new Error("INVALID_TOKEN");
+    }
+
+    const user = await this.userRepository.findById(payload.userId);
+    if (!user) {
+      throw new Error("INVALID_TOKEN");
+    }
+
+    return {
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role as "admin" | "owner" | "customer",
+    };
+  }
+
   async createUser(input: UserCreateRequestDto): Promise<UserResponseDto> {
     const existingUser = await this.userRepository.findByEmail(input.email);
     if (existingUser) throw new Error("EMAIL_ALREADY_EXISTS");

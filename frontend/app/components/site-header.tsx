@@ -4,11 +4,18 @@ import { cn } from "cn";
 import { Utensils } from "lucide-react";
 
 import { Button } from "~/components/ui/button";
+import type { AccountProfile } from "../lib/auth-session.server";
 
 const profileImageUrl =
   "https://api.dicebear.com/7.x/adventurer/svg?seed=uns-food-court-user";
 
-export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
+export function SiteHeader({
+  isAuthenticated,
+  account,
+}: {
+  isAuthenticated: boolean;
+  account: AccountProfile | null;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -59,7 +66,20 @@ export function SiteHeader({ isAuthenticated }: { isAuthenticated: boolean }) {
             </button>
 
             {menuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-40 rounded-xl border border-border bg-popover p-1 shadow-xl shadow-foreground/10">
+              <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-popover p-2 shadow-xl shadow-foreground/10">
+                {account && (
+                  <div className="mb-1 border-b border-border px-3 py-2.5">
+                    <p className="truncate text-sm font-semibold text-popover-foreground">
+                      {account.name}
+                    </p>
+                    <p className="mt-0.5 break-all text-xs text-muted-foreground">
+                      {account.email}
+                    </p>
+                    <p className="mt-2 inline-flex rounded-full bg-muted px-2 py-0.5 text-xs font-medium capitalize text-muted-foreground">
+                      {account.role}
+                    </p>
+                  </div>
+                )}
                 <Form method="post" action="/logout">
                   <button
                     type="submit"

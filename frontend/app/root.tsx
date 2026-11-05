@@ -8,15 +8,33 @@ import {
   useLoaderData,
 } from "react-router";
 
-import { getAuthToken } from "./lib/auth-session.server";
+import { getAccountProfile, getAuthToken } from "./lib/auth-session.server";
+import { getCurrentUser } from "../src/modules/stalls/services/stall.service";
 import type { Route } from "./+types/root";
 import { SiteHeader } from "~/components/site-header";
 import { Toaster } from "~/components/ui/toast";
 import "./app.css";
 
 export async function loader({ request }: Route.LoaderArgs) {
+  const token = getAuthToken(request);
+  let account = token ? (getAccountProfile(request) ?? null) : null;
+
+  if (token) {
+    try {
+      const user = await getCurrentUser(token);
+      account = {
+        name: user.name,
+        email: user.email,
+        role: user.role as "admin" | "owner" | "customer",
+      };
+    } catch {
+      account = null;
+    }
+  }
+
   return {
-    isAuthenticated: Boolean(getAuthToken(request)),
+    isAuthenticated: Boolean(token),
+    account,
   };
 }
 
@@ -39,11 +57,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const { isAuthenticated } = useLoaderData<typeof loader>();
+  const { isAuthenticated, account } = useLoaderData<typeof loader>();
 
   return (
     <>
-      <SiteHeader isAuthenticated={isAuthenticated} />
+      <SiteHeader isAuthenticated={isAuthenticated} account={account} />
       <Outlet />
     </>
   );

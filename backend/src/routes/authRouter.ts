@@ -20,7 +20,7 @@ authRouter.post("/login", (req, res) => {
 
 authRouter.get("/me", (req, res) => {
   // #swagger.parameters['auth_token'] = { in: 'header', required: true, type: 'string' }
-  // #swagger.responses[201] = { description: 'Token valid' }
+  // #swagger.responses[201] = { description: 'Current authenticated user profile (userId, name, email, role)' }
   // #swagger.responses[401] = { description: 'Token tidak valid' }
   return userController.me(req, res);
 });

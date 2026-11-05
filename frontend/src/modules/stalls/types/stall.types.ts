@@ -66,6 +66,8 @@ export type CreateStallInput = {
 
 export type VerifiedUserPayload = {
   userId: number;
+  name: string;
+  email: string;
   role?: string;
 };
 

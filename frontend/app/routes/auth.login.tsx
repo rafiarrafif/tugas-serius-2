@@ -7,7 +7,11 @@ import type {
   LoginActionResult,
   LoginRequest,
 } from "../../src/modules/auth/types/auth.types";
-import { commitAuthToken, getAuthToken } from "../lib/auth-session.server";
+import {
+  commitAccountProfile,
+  commitAuthToken,
+  getAuthToken,
+} from "../lib/auth-session.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   if (getAuthToken(request)) {
@@ -43,14 +47,22 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   try {
-    const token = await loginCustomer(credentials);
+    const { token, user } = await loginCustomer(credentials);
+    const headers = new Headers();
+    headers.append("Set-Cookie", commitAuthToken(token));
+    headers.append(
+      "Set-Cookie",
+      commitAccountProfile({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      }),
+    );
 
     return data<LoginActionResult>(
       { ok: true },
       {
-        headers: {
-          "Set-Cookie": commitAuthToken(token),
-        },
+        headers,
       },
     );
   } catch (error) {

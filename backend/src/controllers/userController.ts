@@ -84,11 +84,11 @@ export class UserController {
         throw new Error("INVALID_TOKEN");
       }
 
-      const payload = this.userService.verifyToken(token);
+      const user = await this.userService.getCurrentUser(token);
       return res.status(201).json({
         status: "success",
         message: "Token valid",
-        data: payload,
+        data: user,
       });
     } catch (error) {
       return this.handleError(res, error);

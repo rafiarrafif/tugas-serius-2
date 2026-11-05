@@ -9,7 +9,9 @@ import type {
   RegisterResponse,
 } from "../types/auth.types";
 
-export async function loginCustomer(payload: LoginRequest): Promise<string> {
+export async function loginCustomer(
+  payload: LoginRequest,
+): Promise<LoginResponse> {
   try {
     const response = await requestBackend<LoginResponse>(
       {
@@ -29,7 +31,7 @@ export async function loginCustomer(payload: LoginRequest): Promise<string> {
       );
     }
 
-    return response.token;
+    return response;
   } catch (error) {
     if (error instanceof BackendRequestError) {
       throw error;
