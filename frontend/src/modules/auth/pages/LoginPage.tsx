@@ -21,6 +21,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
 import { toast } from "~/components/ui/toast";
+import { getCurrentAccount, loginCustomer } from "../services/auth.service";
 import type { LoginActionResult, LoginRequest } from "../types/auth.types";
 
 type LoginField = keyof LoginRequest;
@@ -57,8 +58,9 @@ export function LoginPage() {
   const [backendErrors, setBackendErrors] = useState<LoginErrors>({});
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const handledSuccess = useRef(false);
-  const isSubmitting = fetcher.state !== "idle";
+  const isSubmitting = isLoggingIn || fetcher.state !== "idle";
 
   const validationErrors = validateLogin(values);
   const visibleErrors: LoginErrors = {
@@ -98,13 +100,40 @@ export function LoginPage() {
   }, [fetcher.data, fetcher.state, navigate]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setSubmitted(true);
     setBackendErrors({});
     setErrorMessage(undefined);
 
     if (Object.keys(validationErrors).length > 0) {
-      event.preventDefault();
       return;
+    }
+
+    setIsLoggingIn(true);
+    try {
+      const { token } = await loginCustomer({
+        ...values,
+        email: values.email.trim(),
+      });
+      await getCurrentAccount(token);
+      fetcher.submit({ token }, { method: "post" });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to sign in.";
+      const normalizedMessage = message.toLowerCase();
+      const errors: LoginErrors = {};
+
+      if (/\b(email|e-mail)\b/.test(normalizedMessage)) {
+        errors.email = message;
+      }
+      if (/\b(password|passphrase)\b/.test(normalizedMessage)) {
+        errors.password = message;
+      }
+
+      setBackendErrors(errors);
+      setErrorMessage(message);
+    } finally {
+      setIsLoggingIn(false);
     }
   }
 
@@ -134,7 +163,7 @@ export function LoginPage() {
             </Alert>
           )}
 
-          <fetcher.Form method="post" noValidate onSubmit={handleSubmit}>
+          <form noValidate onSubmit={handleSubmit}>
             <FieldGroup className="gap-4">
               <Field data-invalid={Boolean(visibleErrors.email)}>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -192,7 +221,7 @@ export function LoginPage() {
                 )}
               </Button>
             </FieldGroup>
-          </fetcher.Form>
+          </form>
         </CardContent>
 
         <CardFooter className="flex-col gap-3 border-t border-border/70 bg-accent/25 px-6 py-4 text-center sm:px-8">

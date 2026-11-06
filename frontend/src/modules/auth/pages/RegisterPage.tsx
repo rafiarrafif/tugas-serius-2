@@ -1,11 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import {
   ArrowRight,
   CircleAlert,
   CheckCircle2,
   UserRoundPlus,
 } from "lucide-react";
-import { useFetcher } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
@@ -25,10 +24,8 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
-import type {
-  RegisterActionResult,
-  RegisterRequest,
-} from "../types/auth.types";
+import { registerCustomer } from "../services/auth.service";
+import type { RegisterRequest } from "../types/auth.types";
 
 type RegistrationValues = Pick<RegisterRequest, "name" | "email" | "password">;
 type RegistrationField = keyof RegistrationValues;
@@ -61,9 +58,8 @@ function validateRegistration(values: RegistrationValues): RegistrationErrors {
 }
 
 export function RegisterPage() {
-  const fetcher = useFetcher<RegisterActionResult>();
-  const isSubmitting = fetcher.state !== "idle";
   const [values, setValues] = useState(initialValues);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [backendErrors, setBackendErrors] = useState<RegistrationErrors>({});
   const [touched, setTouched] = useState<
     Partial<Record<RegistrationField, boolean>>
@@ -87,21 +83,6 @@ export function RegisterPage() {
     ),
   ) as RegistrationErrors;
 
-  useEffect(() => {
-    if (fetcher.state !== "idle" || !fetcher.data) {
-      return;
-    }
-
-    const message = fetcher.data.message ?? "Unable to create your account.";
-    const fieldErrors = fetcher.data.fieldErrors ?? {};
-
-    setBackendErrors(fieldErrors);
-    setFeedback({
-      type: "error",
-      message,
-    });
-  }, [fetcher.data, fetcher.state]);
-
   function updateField(field: RegistrationField, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
     setBackendErrors((current) => ({ ...current, [field]: undefined }));
@@ -110,18 +91,54 @@ export function RegisterPage() {
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setSubmitted(true);
     setBackendErrors({});
     setFeedback(undefined);
 
     if (Object.keys(errors).length > 0) {
-      event.preventDefault();
       return;
     }
 
-    if (fetcher.state !== "idle") {
-      event.preventDefault();
+    if (isSubmitting) {
       return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await registerCustomer({
+        ...values,
+        name: values.name.trim(),
+        email: values.email.trim(),
+        role: "customer",
+      });
+      setValues(initialValues);
+      setFeedback({
+        type: "success",
+        message: "Your account has been created. You can now sign in.",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to create your account.";
+      const normalizedMessage = message.toLowerCase();
+      const fieldErrors: RegistrationErrors = {};
+
+      if (/\b(name|full name)\b/.test(normalizedMessage)) {
+        fieldErrors.name = message;
+      }
+      if (/\b(email|e-mail)\b/.test(normalizedMessage)) {
+        fieldErrors.email = message;
+      }
+      if (/\b(password|passphrase)\b/.test(normalizedMessage)) {
+        fieldErrors.password = message;
+      }
+
+      setBackendErrors(fieldErrors);
+      setFeedback({ type: "error", message });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -162,8 +179,7 @@ export function RegisterPage() {
             </Alert>
           )}
 
-          <fetcher.Form method="post" noValidate onSubmit={handleSubmit}>
-            <input type="hidden" name="role" value="customer" />
+          <form noValidate onSubmit={handleSubmit}>
             <FieldGroup className="gap-4">
               <Field data-invalid={Boolean(visibleErrors.name)}>
                 <FieldLabel htmlFor="name">Name</FieldLabel>
@@ -238,7 +254,7 @@ export function RegisterPage() {
                 )}
               </Button>
             </FieldGroup>
-          </fetcher.Form>
+          </form>
         </CardContent>
 
         <CardFooter className="justify-center border-t border-border/70 bg-accent/25 px-6 py-4 text-center text-xs text-muted-foreground sm:px-8">

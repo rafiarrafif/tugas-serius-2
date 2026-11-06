@@ -10,7 +10,7 @@ import {
   Store,
   Trash2,
 } from "lucide-react";
-import { Link, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import {
@@ -28,7 +28,11 @@ import { Button, buttonVariants } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Spinner } from "~/components/ui/spinner";
 import { BackendRequestError } from "../../../shared/lib/api-handler";
-import { getMenuItemsForStall, getStallById } from "../services/stall.service";
+import {
+  deleteStall,
+  getMenuItemsForStall,
+  getStallById,
+} from "../services/stall.service";
 import type {
   MenuItem,
   Stall,
@@ -46,15 +50,10 @@ const currencyFormatter = new Intl.NumberFormat("id-ID", {
 
 export function StallDetailPage({
   currentUser,
-  isDeleting,
-  deleteError,
-  onDelete,
 }: {
   currentUser: VerifiedUserPayload | null;
-  isDeleting: boolean;
-  deleteError: string | null;
-  onDelete: () => void;
 }) {
+  const navigate = useNavigate();
   const { stall_id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const stallId = Number(stall_id);
@@ -70,6 +69,8 @@ export function StallDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [menuError, setMenuError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
   const limit = Math.min(
@@ -174,6 +175,25 @@ export function StallDetailPage({
 
     return currentUser.userId === stall.ownerId;
   }, [currentUser, stall]);
+
+  async function handleDelete() {
+    if (!stall) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteStall(stall.id);
+      navigate("/stall");
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "Unable to delete the stall.",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   function changePage(nextPage: number) {
     const next = new URLSearchParams(searchParams);
@@ -293,7 +313,7 @@ export function StallDetailPage({
                       disabled={isDeleting}
                       onClick={() => {
                         setDeleteDialogOpen(false);
-                        onDelete();
+                        void handleDelete();
                       }}
                     >
                       Yes, delete

@@ -15,7 +15,12 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.headers.auth_token;
+  const cookieToken = req.headers.cookie
+    ?.split(";")
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith("auth_token="))
+    ?.slice("auth_token=".length);
+  const token = req.headers.auth_token ?? cookieToken;
   if (typeof token !== "string" || token.length === 0) {
     return res
       .status(401)

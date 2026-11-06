@@ -5,7 +5,13 @@ export type RegisterRequest = {
   role: "customer";
 };
 
-export type RegisterResponse = string;
+export type RegisterResponse = {
+  id: number;
+  name: string;
+  email: string;
+  role: "admin" | "owner" | "customer";
+  createdAt: string | null;
+};
 
 export type RegisterActionResult = {
   message?: string;
@@ -26,6 +32,13 @@ export type LoginResponse = {
     role: "admin" | "owner" | "customer";
     createdAt: string | null;
   };
+};
+
+export type CurrentUserResponse = {
+  userId: number;
+  name: string;
+  email: string;
+  role: "admin" | "owner" | "customer";
 };
 
 export type LoginActionResult = {

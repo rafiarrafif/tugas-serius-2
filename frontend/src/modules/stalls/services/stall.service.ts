@@ -30,16 +30,13 @@ export async function getVerifiedUserRole(
   return user.role;
 }
 
-export async function createStall(
-  payload: CreateStallInput,
-  token: string,
-): Promise<unknown> {
+export async function createStall(payload: CreateStallInput): Promise<unknown> {
   return requestBackend<unknown>(
     {
       method: "POST",
       url: "/stalls/",
       data: payload,
-      headers: { auth_token: token },
+      withCredentials: true,
     },
     "Unable to create the stall.",
   );
@@ -48,28 +45,24 @@ export async function createStall(
 export async function updateStall(
   stallId: number,
   payload: CreateStallInput,
-  token: string,
 ): Promise<unknown> {
   return requestBackend<unknown>(
     {
       method: "PUT",
       url: `/stalls/${stallId}`,
       data: payload,
-      headers: { auth_token: token },
+      withCredentials: true,
     },
     "Unable to update the stall.",
   );
 }
 
-export async function deleteStall(
-  stallId: number,
-  token: string,
-): Promise<Stall> {
+export async function deleteStall(stallId: number): Promise<Stall> {
   return requestBackend<Stall>(
     {
       method: "DELETE",
       url: `/stalls/${stallId}`,
-      headers: { auth_token: token },
+      withCredentials: true,
     },
     "Unable to delete the stall.",
   );

@@ -2,11 +2,7 @@ import { data, redirect } from "react-router";
 import type { Route } from "./+types/auth.login";
 
 import { LoginPage } from "../../src/modules/auth/pages/LoginPage";
-import { loginCustomer } from "../../src/modules/auth/services/auth.service";
-import type {
-  LoginActionResult,
-  LoginRequest,
-} from "../../src/modules/auth/types/auth.types";
+import { getCurrentAccount } from "../../src/modules/auth/services/auth.service";
 import {
   commitAccountProfile,
   commitAuthToken,
@@ -23,31 +19,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
-  const credentials: LoginRequest = {
-    email: String(formData.get("email") ?? "").trim(),
-    password: String(formData.get("password") ?? ""),
-  };
-  const fieldErrors: NonNullable<LoginActionResult["fieldErrors"]> = {};
-
-  if (!credentials.email) {
-    fieldErrors.email = "Enter your email address.";
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(credentials.email)) {
-    fieldErrors.email = "Enter a valid email address.";
-  }
-
-  if (!credentials.password) {
-    fieldErrors.password = "Enter your password.";
-  }
-
-  if (Object.keys(fieldErrors).length > 0) {
-    return data<LoginActionResult>(
-      { message: "Check the highlighted fields.", fieldErrors },
+  const token = String(formData.get("token") ?? "");
+  if (!token) {
+    return data(
+      { message: "Unable to establish your session." },
       { status: 400 },
     );
   }
 
   try {
-    const { token, user } = await loginCustomer(credentials);
+    const user = await getCurrentAccount(token);
     const headers = new Headers();
     headers.append("Set-Cookie", commitAuthToken(token));
     headers.append(
@@ -59,25 +40,11 @@ export async function action({ request }: Route.ActionArgs) {
       }),
     );
 
-    return data<LoginActionResult>(
-      { ok: true },
-      {
-        headers,
-      },
-    );
+    return data({ ok: true }, { headers });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Unable to sign in.";
-    const normalizedMessage = message.toLowerCase();
-
-    if (/\b(email|e-mail)\b/.test(normalizedMessage)) {
-      fieldErrors.email = message;
-    }
-    if (/\b(password|passphrase)\b/.test(normalizedMessage)) {
-      fieldErrors.password = message;
-    }
-
-    return data<LoginActionResult>({ message, fieldErrors }, { status: 400 });
+      error instanceof Error ? error.message : "Unable to verify your account.";
+    return data({ message }, { status: 401 });
   }
 }
 

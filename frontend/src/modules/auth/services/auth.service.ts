@@ -5,6 +5,7 @@ import {
 import type {
   LoginRequest,
   LoginResponse,
+  CurrentUserResponse,
   RegisterRequest,
   RegisterResponse,
 } from "../types/auth.types";
@@ -38,6 +39,27 @@ export async function loginCustomer(
     }
 
     throw new Error("Unable to sign in.");
+  }
+}
+
+export async function getCurrentAccount(
+  token: string,
+): Promise<CurrentUserResponse> {
+  try {
+    return await requestBackend<CurrentUserResponse>(
+      {
+        method: "GET",
+        url: "/auth/me",
+        headers: { auth_token: token },
+      },
+      "Unable to verify your account.",
+    );
+  } catch (error) {
+    if (error instanceof BackendRequestError) {
+      throw error;
+    }
+
+    throw new Error("Unable to verify your account.");
   }
 }
 

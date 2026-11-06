@@ -1,4 +1,5 @@
-import { useFetcher, Link } from "react-router";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router";
 import { ArrowLeft, CircleAlert, Plus, Store } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
@@ -19,10 +20,9 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
-import type {
-  CreateStallActionResult,
-  CreateStallInput,
-} from "../types/stall.types";
+import { BackendRequestError } from "../../../shared/lib/api-handler";
+import { createStall } from "../services/stall.service";
+import type { CreateStallInput } from "../types/stall.types";
 
 const fields: Array<{
   name: keyof CreateStallInput;
@@ -35,10 +35,61 @@ const fields: Array<{
 ];
 
 export function CreateStallPage({ authorized }: { authorized: boolean }) {
-  const fetcher = useFetcher<CreateStallActionResult>();
-  const actionResult = fetcher.data;
-  const forbidden = !authorized || actionResult?.forbidden === true;
-  const isSubmitting = fetcher.state !== "idle";
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<keyof CreateStallInput, string>>
+  >({});
+  const [isForbidden, setIsForbidden] = useState(false);
+  const forbidden = !authorized || isForbidden;
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const payload: CreateStallInput = {
+      name: String(formData.get("name") ?? "").trim(),
+      category: String(formData.get("category") ?? "").trim(),
+      location: String(formData.get("location") ?? "").trim(),
+      description: String(formData.get("description") ?? "").trim(),
+    };
+    const errors: Partial<Record<keyof CreateStallInput, string>> = {};
+
+    if (payload.name.length < 3 || payload.name.length > 100) {
+      errors.name = "Enter a stall name between 3 and 100 characters.";
+    }
+    if (payload.category.length > 50) {
+      errors.category = "Category must be 50 characters or fewer.";
+    }
+    if (payload.location.length > 100) {
+      errors.location = "Location must be 100 characters or fewer.";
+    }
+    if (payload.description.length > 1000) {
+      errors.description = "Description must be 1000 characters or fewer.";
+    }
+
+    setFieldErrors(errors);
+    setSubmitError(null);
+    setIsForbidden(false);
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await createStall(payload);
+      navigate("/stall");
+    } catch (error) {
+      setIsForbidden(
+        error instanceof BackendRequestError && error.responseStatus === 403,
+      );
+      setSubmitError(
+        error instanceof Error ? error.message : "Unable to create the stall.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   if (forbidden) {
     return (
@@ -87,21 +138,18 @@ export function CreateStallPage({ authorized }: { authorized: boolean }) {
           </CardHeader>
 
           <CardContent>
-            {actionResult?.message && !actionResult.forbidden && (
+            {submitError && !isForbidden && (
               <Alert variant="destructive" className="mb-5">
                 <CircleAlert />
                 <AlertTitle>Unable to create stall</AlertTitle>
-                <AlertDescription>{actionResult.message}</AlertDescription>
+                <AlertDescription>{submitError}</AlertDescription>
               </Alert>
             )}
 
-            <fetcher.Form method="post">
+            <form onSubmit={handleSubmit}>
               <FieldGroup className="gap-5">
                 {fields.map(({ name, label, maxLength }) => (
-                  <Field
-                    key={name}
-                    data-invalid={Boolean(actionResult?.fieldErrors?.[name])}
-                  >
+                  <Field key={name} data-invalid={Boolean(fieldErrors[name])}>
                     <FieldLabel htmlFor={name}>{label}</FieldLabel>
                     <Input
                       id={name}
@@ -109,34 +157,28 @@ export function CreateStallPage({ authorized }: { authorized: boolean }) {
                       required={name === "name"}
                       minLength={name === "name" ? 3 : undefined}
                       maxLength={maxLength}
-                      aria-invalid={Boolean(actionResult?.fieldErrors?.[name])}
+                      aria-invalid={Boolean(fieldErrors[name])}
                       disabled={isSubmitting}
                     />
-                    {actionResult?.fieldErrors?.[name] && (
-                      <FieldError>{actionResult.fieldErrors[name]}</FieldError>
+                    {fieldErrors[name] && (
+                      <FieldError>{fieldErrors[name]}</FieldError>
                     )}
                   </Field>
                 ))}
 
-                <Field
-                  data-invalid={Boolean(actionResult?.fieldErrors?.description)}
-                >
+                <Field data-invalid={Boolean(fieldErrors.description)}>
                   <FieldLabel htmlFor="description">Description</FieldLabel>
                   {/* No shadcn Textarea component is installed, so Tailwind styles the native control. */}
                   <textarea
                     id="description"
                     name="description"
                     maxLength={1000}
-                    aria-invalid={Boolean(
-                      actionResult?.fieldErrors?.description,
-                    )}
+                    aria-invalid={Boolean(fieldErrors.description)}
                     disabled={isSubmitting}
                     className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                   />
-                  {actionResult?.fieldErrors?.description && (
-                    <FieldError>
-                      {actionResult.fieldErrors.description}
-                    </FieldError>
+                  {fieldErrors.description && (
+                    <FieldError>{fieldErrors.description}</FieldError>
                   )}
                 </Field>
 
@@ -154,7 +196,7 @@ export function CreateStallPage({ authorized }: { authorized: boolean }) {
                   )}
                 </Button>
               </FieldGroup>
-            </fetcher.Form>
+            </form>
           </CardContent>
         </Card>
       </div>
