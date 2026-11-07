@@ -1,87 +1,76 @@
-# Welcome to React Router!
+# Frontend
 
-A modern, production-ready template for building full-stack React applications using React Router.
+The frontend provides the UNS Food Court interface for browsing stalls and menus, viewing stall details, registering and signing in, and creating, editing, or deleting stalls when permitted.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Requirements
 
-## Features
+- Node.js and npm
+- The backend running at `http://localhost:3000`
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+## Setup and Run
 
-## Getting Started
-
-### Installation
-
-Install the dependencies:
+From this directory:
 
 ```bash
-npm install
+npm ci
+cp .env.example .env
 ```
 
-### Development
+Set `BACKEND_ENDPOINT` in `.env` to the backend API base URL. For local development:
 
-Start the development server with HMR:
+```dotenv
+BACKEND_ENDPOINT=http://localhost:3000/api/v1
+```
+
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+Open `http://localhost:5173`. The backend currently allows credentialed browser requests from this origin; if the frontend uses a different port, update the backend CORS origin as well.
 
-## Building for Production
+## Available Commands
 
-Create a production build:
+| Command             | Purpose                                        |
+| ------------------- | ---------------------------------------------- |
+| `npm run dev`       | Start the development server with hot reload   |
+| `npm run typecheck` | Generate route types and run TypeScript checks |
+| `npm run build`     | Create the production client and server build  |
+| `npm start`         | Serve the production build                     |
+
+## Using the Application
+
+- Browse stalls at `/stall`; open a stall to see its details and paginated menu items.
+- Register at `/auth/register` or sign in at `/auth/login`.
+- Signed-in owners and administrators can create stalls at `/create/stall`.
+- Stall owners and administrators can edit or delete authorized stalls from the detail page.
+- API failures are shown in the relevant form or page. The backend remains responsible for final input validation and access control.
+
+## Technology and Architecture
+
+- React 19 and TypeScript
+- React Router 8 with server rendering, route loaders, and route actions
+- Axios for backend requests, using the shared instance in `src/shared/lib/axios.ts` and response handling in `src/shared/lib/api-handler.ts`
+- Tailwind CSS, with shadcn-style UI components and Base UI primitives
+
+Route modules live in `app/routes/`. They load session state and compose pages from `src/modules/`. Feature code is grouped by module; for example, stall pages, API services, and types live under `src/modules/stalls/`. Shared request utilities and types live under `src/shared/`.
+
+Login and registration requests are sent from the browser, so they are visible in the browser Network inspector. After login, the frontend immediately calls `/auth/me` to verify and load the account profile. The returned token is then sent to the frontend server action, which sets an `HttpOnly` session cookie. Stall create, edit, and delete requests are also sent directly from the browser; the backend accepts the session token from the `auth_token` cookie and enforces authorization.
+
+The frontend uses these backend API paths (prefixed by `BACKEND_ENDPOINT`):
+
+- `POST /auth/register`, `POST /auth/login`, `GET /auth/me`
+- `GET /stalls`, `GET /stalls/:id`, `POST /stalls/`, `PUT /stalls/:id`, `DELETE /stalls/:id`
+- `GET /menu-items`
+
+## Production
+
+Build and run the production server with:
 
 ```bash
 npm run build
+npm start
 ```
 
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+The build output is written to `build/client/` and `build/server/`.
