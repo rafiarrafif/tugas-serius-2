@@ -1,11 +1,11 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   CircleAlert,
   CheckCircle2,
   UserRoundPlus,
 } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useFetcher } from "react-router";
 
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
@@ -25,10 +25,10 @@ import {
 } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { Spinner } from "~/components/ui/spinner";
-import { toast } from "~/components/ui/toast";
-import { BackendRequestError } from "../../../shared/lib/api-handler";
-import { registerCustomer } from "../services/auth.service";
-import type { RegisterRequest } from "../types/auth.types";
+import type {
+  RegisterActionResult,
+  RegisterRequest,
+} from "../types/auth.types";
 
 type RegistrationValues = Pick<RegisterRequest, "name" | "email" | "password">;
 type RegistrationField = keyof RegistrationValues;
@@ -61,14 +61,14 @@ function validateRegistration(values: RegistrationValues): RegistrationErrors {
 }
 
 export function RegisterPage() {
-  const navigate = useNavigate();
+  const fetcher = useFetcher<RegisterActionResult>();
+  const isSubmitting = fetcher.state !== "idle";
   const [values, setValues] = useState(initialValues);
   const [backendErrors, setBackendErrors] = useState<RegistrationErrors>({});
   const [touched, setTouched] = useState<
     Partial<Record<RegistrationField, boolean>>
   >({});
   const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<
     { type: "success" | "error"; message: string } | undefined
   >();
@@ -87,6 +87,21 @@ export function RegisterPage() {
     ),
   ) as RegistrationErrors;
 
+  useEffect(() => {
+    if (fetcher.state !== "idle" || !fetcher.data) {
+      return;
+    }
+
+    const message = fetcher.data.message ?? "Unable to create your account.";
+    const fieldErrors = fetcher.data.fieldErrors ?? {};
+
+    setBackendErrors(fieldErrors);
+    setFeedback({
+      type: "error",
+      message,
+    });
+  }, [fetcher.data, fetcher.state]);
+
   function updateField(field: RegistrationField, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
     setBackendErrors((current) => ({ ...current, [field]: undefined }));
@@ -95,57 +110,18 @@ export function RegisterPage() {
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
     setSubmitted(true);
     setBackendErrors({});
     setFeedback(undefined);
 
     if (Object.keys(errors).length > 0) {
+      event.preventDefault();
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      await registerCustomer({
-        name: values.name.trim(),
-        email: values.email.trim(),
-        password: values.password,
-        role: "customer",
-      });
-      toast.add({
-        title: "Account created",
-        description: "Your customer account is ready.",
-        type: "success",
-      });
-      navigate("/");
-    } catch (error) {
-      const message =
-        error instanceof BackendRequestError
-          ? error.message
-          : error instanceof Error
-            ? error.message
-            : "Unable to create your account. Please try again.";
-      const fieldErrors: RegistrationErrors = {};
-      const normalizedMessage = message.toLowerCase();
-
-      if (/\b(name|full name)\b/.test(normalizedMessage)) {
-        fieldErrors.name = message;
-      }
-      if (/\b(email|e-mail)\b/.test(normalizedMessage)) {
-        fieldErrors.email = message;
-      }
-      if (/\b(password|passphrase)\b/.test(normalizedMessage)) {
-        fieldErrors.password = message;
-      }
-
-      setBackendErrors(fieldErrors);
-      setFeedback({
-        type: "error",
-        message,
-      });
-    } finally {
-      setIsSubmitting(false);
+    if (fetcher.state !== "idle") {
+      event.preventDefault();
+      return;
     }
   }
 
@@ -190,7 +166,7 @@ export function RegisterPage() {
             </Alert>
           )}
 
-          <form noValidate onSubmit={handleSubmit}>
+          <fetcher.Form method="post" noValidate onSubmit={handleSubmit}>
             <input type="hidden" name="role" value="customer" />
             <FieldGroup className="gap-4">
               <Field data-invalid={Boolean(visibleErrors.name)}>
@@ -266,7 +242,7 @@ export function RegisterPage() {
                 )}
               </Button>
             </FieldGroup>
-          </form>
+          </fetcher.Form>
         </CardContent>
 
         <CardFooter className="justify-center border-t border-border/70 px-6 py-4 text-center text-xs text-muted-foreground sm:px-8">

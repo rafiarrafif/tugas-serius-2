@@ -25,21 +25,11 @@ api.interceptors.request.use((config) => {
       ? outgoingHeaders.auth_token
       : undefined;
 
-  const fallbackAuthToken =
-    (typeof window !== "undefined" &&
-      window.localStorage.getItem("auth_token")) ??
-    (import.meta.env.VITE_API_TOKEN as string | undefined) ??
-    (import.meta.env.AUTH_TOKEN as string | undefined);
-
-  const resolvedAuthToken = headerAuthToken ?? fallbackAuthToken;
-
   delete outgoingHeaders.auth_token;
 
   config.headers = {
     ...outgoingHeaders,
-    ...(resolvedAuthToken
-      ? { Authorization: `Bearer ${resolvedAuthToken}` }
-      : {}),
+    ...(headerAuthToken ? { Authorization: `Bearer ${headerAuthToken}` } : {}),
   };
 
   return config;

@@ -6,3 +6,30 @@ export type RegisterRequest = {
 };
 
 export type RegisterResponse = string;
+
+export type RegisterActionResult = {
+  message?: string;
+  fieldErrors?: Partial<Record<"name" | "email" | "password", string>>;
+};
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export type LoginResponse = {
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    role: "admin" | "owner" | "customer";
+    createdAt: string | null;
+  };
+};
+
+export type LoginActionResult = {
+  ok?: true;
+  message?: string;
+  fieldErrors?: Partial<Record<keyof LoginRequest, string>>;
+};
