@@ -15,9 +15,17 @@ import { flagRouter } from "./routes/flagRouter.ts";
 import { auditRouter } from "./routes/auditRouter.ts";
 import { authRouter } from "./routes/authRouter.ts";
 import { auditMiddleware } from "./middleware/auditMiddleware.ts";
+const cors = require("cors");
 
 const app: Application = express();
 const PORT: number = 3000;
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 
